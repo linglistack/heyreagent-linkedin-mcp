@@ -1,0 +1,216 @@
+{
+  "name": "Search LinkedIn people and send connection invitations with HeyReagent",
+  "nodes": [
+    {
+      "id": "34ee9777-f5bf-4ae2-bee8-815300c430b3",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -700
+      ],
+      "parameters": {
+        "width": 760,
+        "height": 640,
+        "content": "## Search LinkedIn people and send connection invitations\n\nSearch LinkedIn for the kind of person you want to meet, by plain words and a place, then send each one a connection invitation with your note. It runs on your own LinkedIn account through HeyReagent's API: n8n's own LinkedIn node can only create posts.\n\n### How it works\n1. **Who to look for** holds the search words, the place, how many people (up to 10) and the note.\n2. **Search people** asks LinkedIn. Each person in the answer has a `profileUrl`.\n3. **One person per item** turns the list into one item each.\n4. **Send invitation** sends one invitation per person, a few seconds apart.\n\n### Set up (about 5 minutes)\n1. Sign in at heyreagent.com and connect your own LinkedIn account on the page you land on.\n2. Open Menu, then Developers, and create a key. Copy it: it is shown once.\n3. In n8n, open each **HTTP Request** node, and under **Bearer Auth** create a credential with that key. Use the same credential in both nodes.\n4. Change the values in the **Who to look for** node, then press **Execute workflow**.\n\n### Good to know\n- Each LinkedIn account has daily limits (30 invitations a day, 20 on a free LinkedIn account). A call past a limit answers `ok: false` with the time it resets; the workflow carries on and shows it.\n- Every call answers `{ \"ok\": true, \"result\": { … } }` or `{ \"ok\": false, \"error\": \"…\", \"message\": \"…\" }`.\n- On the free plan LinkedIn is disconnected after a while without use, so run it while you work. A scheduled run needs the Connect plan.\n- HeyReagent is not affiliated with LinkedIn. LinkedIn's User Agreement does not allow automated activity and it can restrict an account: keep the numbers small.\n- All actions: https://heyreagent.com/docs"
+      }
+    },
+    {
+      "id": "b67790cd-2226-4021-97d3-c246c0b82628",
+      "name": "Change these",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -150
+      ],
+      "parameters": {
+        "width": 240,
+        "height": 130,
+        "content": "### Change these\nThe words to search for, the place, how many people, and the note that goes with each invitation (up to 300 characters)."
+      }
+    },
+    {
+      "id": "bf545308-5221-4213-8d72-544878267f43",
+      "name": "Your key goes here",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        170
+      ],
+      "parameters": {
+        "width": 640,
+        "height": 100,
+        "content": "### Your key goes here\nBoth HTTP Request nodes use one **Bearer Auth** credential: your HeyReagent key."
+      }
+    },
+    {
+      "id": "ab829873-cf96-40ac-98e1-52afa7851409",
+      "name": "When clicking ‘Execute workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "cad4df12-b9a1-4261-ab4e-fce9ad770b38",
+      "name": "Who to look for",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6417f3ee-3378-4f22-854b-a2274ce45488",
+              "name": "keywords",
+              "type": "string",
+              "value": "head of sales"
+            },
+            {
+              "id": "ca7fa79c-3bee-441a-b189-bdb6f09a9156",
+              "name": "location",
+              "type": "string",
+              "value": "Berlin"
+            },
+            {
+              "id": "b78bab91-6b82-492c-8ee0-dde4a3947077",
+              "name": "howMany",
+              "type": "number",
+              "value": 5
+            },
+            {
+              "id": "4293f56b-f783-4245-b17e-444982ddb8d8",
+              "name": "note",
+              "type": "string",
+              "value": "Hello, I would like to connect."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5664e602-181e-44c1-91fd-39d8b86ef66d",
+      "name": "Search people",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heyreagent.com/v1/actions/search_people",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ keywords: $json.keywords, location: $json.location, limit: $json.howMany }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ece37a66-1058-4e8f-8061-2ae4f7f84abd",
+      "name": "One person per item",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "fieldToSplitOut": "result.people",
+        "options": {}
+      }
+    },
+    {
+      "id": "e65fec63-d6bb-48a7-834b-341dd0bd90b9",
+      "name": "Send invitation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heyreagent.com/v1/actions/send_invitation",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ profileUrl: $json.profileUrl, note: $('Who to look for').first().json.note }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 4000
+            }
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Who to look for",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Who to look for": {
+      "main": [
+        [
+          {
+            "node": "Search people",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search people": {
+      "main": [
+        [
+          {
+            "node": "One person per item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One person per item": {
+      "main": [
+        [
+          {
+            "node": "Send invitation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

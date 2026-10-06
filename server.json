@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.linglistack/heyreagent-linkedin-mcp",
+  "title": "HeyReagent LinkedIn MCP",
+  "description": "Free to start. Hosted LinkedIn MCP for your own account: inbox, invites, search. Not by LinkedIn.",
+  "version": "1.0.0",
+  "websiteUrl": "https://heyreagent.com/linkedin-mcp?utm_source=mcp-registry&utm_medium=listing",
+  "repository": {
+    "url": "https://github.com/linglistack/heyreagent-linkedin-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.heyreagent.com/mcp"
+    }
+  ]
+}

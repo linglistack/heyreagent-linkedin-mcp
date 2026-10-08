@@ -1,0 +1,20 @@
+{
+  "name": "heyreagent",
+  "displayName": "HeyReagent",
+  "version": "1.0.0",
+  "description": "A hosted MCP server for your own LinkedIn account: read your inbox, send messages and invitations, search people, and work with posts. Sign in with your HeyReagent account; there is no key to paste. An independent service, not made by or affiliated with LinkedIn.",
+  "author": {
+    "name": "HeyReagent",
+    "email": "hello@heyreagent.com",
+    "url": "https://heyreagent.com"
+  },
+  "homepage": "https://heyreagent.com/linkedin-mcp?utm_source=plugin&utm_medium=listing",
+  "repository": "https://github.com/linglistack/heyreagent-linkedin-mcp",
+  "license": "MIT",
+  "keywords": ["heyreagent", "heyreagent mcp", "heyreagent linkedin", "heyreagent agent"],
+  "icon": "./icon.png",
+  "documentationUrl": "https://heyreagent.com/docs",
+  "supportUrl": "https://github.com/linglistack/heyreagent-linkedin-mcp/issues",
+  "privacyPolicyUrl": "https://heyreagent.com/privacy",
+  "termsOfServiceUrl": "https://heyreagent.com/terms"
+}

@@ -12,7 +12,7 @@ HeyReagent is not made by, affiliated with or endorsed by LinkedIn, and LinkedIn
 - The docs, with every action: https://heyreagent.com/docs?utm_source=github&utm_medium=readme
 - The whole API as an OpenAPI 3.1 file: https://heyreagent.com/openapi.json
 
-This repository holds the steps to connect an AI app, and two n8n workflows. The server is hosted; its code is not here.
+This repository holds the steps to connect an AI app, a plugin for Claude Code, and two n8n workflows. The server is hosted; its code is not here.
 
 ## Before you connect
 
@@ -64,6 +64,8 @@ claude mcp add --transport http heyreagent https://api.heyreagent.com/mcp \
   --header "Authorization: Bearer YOUR_KEY"
 ```
 
+Or install the plugin in this repository, which signs in to your account and needs no key. See [The plugin](#the-plugin).
+
 ### Cursor
 
 Uses your key.
@@ -90,6 +92,33 @@ Uses your key.
 1. Add an MCP Client Tool node to your agent.
 2. Endpoint: the address above. Server Transport: HTTP Streamable.
 3. Authentication: Bearer Auth, with your key.
+
+## The plugin
+
+This repository is also a plugin for Claude Code, and for other apps that read the same layout, such as Grok Build. It holds two things:
+
+- **The MCP server** `heyreagent`, a pointer to `https://api.heyreagent.com/mcp` ([`.mcp.json`](.mcp.json)). Nothing is downloaded or run on your machine.
+- **The skill** `heyreagent` ([`skills/heyreagent/SKILL.md`](skills/heyreagent/SKILL.md)): how to use the actions well. It tells the AI to ask you before anything is sent or changed on LinkedIn, to take ids from earlier answers, and what to do at a limit.
+
+To install it in Claude Code, run these in a terminal:
+
+```
+claude plugin marketplace add linglistack/heyreagent-linkedin-mcp
+claude plugin install heyreagent@heyreagent
+```
+
+Then start Claude Code, run `/mcp`, choose `heyreagent`, and sign in to HeyReagent in the browser window that opens.
+
+### Sign-in and network
+
+The plugin connects to `https://api.heyreagent.com`, and the sign-in opens `https://heyreagent.com` in your browser. It reaches nothing else.
+
+- `https://api.heyreagent.com/mcp`: the MCP server (Streamable HTTP).
+- `https://api.heyreagent.com/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server`: where your app finds the sign-in.
+- `https://api.heyreagent.com/oauth/register`, `/oauth/authorize` and `/oauth/token`: the sign-in itself, OAuth with PKCE. Your app registers itself; there is no client secret.
+- `https://heyreagent.com/signin`: the page where you sign in and agree.
+
+What it needs from you: a HeyReagent account with your own LinkedIn account connected. No key is stored in the plugin, and it has no hooks and no scripts.
 
 ## What it can do
 
@@ -123,6 +152,10 @@ The guide: https://heyreagent.com/n8n-linkedin?utm_source=github&utm_medium=read
 Each LinkedIn account has a daily limit for each kind of action; an action past its limit is refused, with the time it resets. Reading your conversations is not limited. [All the limits](https://heyreagent.com/docs?utm_source=github&utm_medium=readme#limits).
 
 LinkedIn's User Agreement does not allow automated activity, and LinkedIn can limit or restrict an account that it decides is automated. Keep the numbers small, and spread what you do over the day.
+
+## Licence
+
+The files in this repository (the plugin, the skill, the n8n workflows and this page) are under the [MIT licence](LICENSE). The hosted service has its own [terms](https://heyreagent.com/terms) and [privacy policy](https://heyreagent.com/privacy).
 
 ## Questions
 

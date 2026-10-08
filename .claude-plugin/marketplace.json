@@ -1,0 +1,16 @@
+{
+  "name": "heyreagent",
+  "description": "HeyReagent: a hosted MCP server for your own LinkedIn account",
+  "owner": {
+    "name": "HeyReagent",
+    "email": "hello@heyreagent.com"
+  },
+  "plugins": [
+    {
+      "name": "heyreagent",
+      "source": "./",
+      "description": "Read your LinkedIn inbox, send messages and invitations, search people, and work with posts, on your own account. Sign in with your HeyReagent account. Not made by or affiliated with LinkedIn.",
+      "category": "productivity"
+    }
+  ]
+}

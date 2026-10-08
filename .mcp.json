@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "heyreagent": {
+      "type": "http",
+      "url": "https://api.heyreagent.com/mcp"
+    }
+  }
+}

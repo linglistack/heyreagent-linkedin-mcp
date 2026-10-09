@@ -1,0 +1,601 @@
+{
+  "name": "Draft LinkedIn replies with OpenAI and send them after Slack approval via HeyReagent",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Draft LinkedIn replies with OpenAI and send them after Slack approval via HeyReagent\n\n### Who's it for\n\nFounders, consultants and salespeople whose LinkedIn inbox fills up faster than they answer it, and who want every reply read by a person before it goes out.\n\n### How it works\n\n1. Every weekday at 9:00 the workflow refreshes your LinkedIn inbox through HeyReagent's API and lists the people whose last message you have not answered.\n2. For each person it reads the whole conversation and has an OpenAI chat model draft a reply in your voice.\n3. It sends you the draft in Slack with two buttons. **Send it** sends the reply from your own LinkedIn account. **Skip** leaves the conversation alone.\n4. It pauses before the next person, so messages do not go out in a burst.\n\n### How to set up\n\n1. Make a free account at [heyreagent.com](https://heyreagent.com/?utm_source=n8n&utm_medium=template), connect your LinkedIn account, and create a key under Menu, then Developers.\n2. Create a **Bearer Auth** credential with that key and choose it in the four HTTP Request nodes.\n3. Add your **OpenAI** credential to **OpenAI Chat Model** and your **Slack** credential to **Ask me in Slack**, and pick the channel to ask in.\n4. Open **Settings** and write what you do and how you write.\n5. Run it once by hand, answer in Slack, then switch the workflow on.\n\n### Requirements\n\n- A HeyReagent account with LinkedIn connected (the free plan works)\n- An OpenAI key, or any other chat model node in its place\n- A Slack workspace\n\n### How to customize the workflow\n\n- Change the hour in **Every weekday at 9**, and how many people a day in **Settings** (start with 5; HeyReagent allows 100 messages a day per LinkedIn account).\n- Swap Slack for Gmail, Telegram or Discord: their \"send and wait for response\" works the same.\n- LinkedIn's User Agreement does not allow automated activity. A person approving every message lowers that risk and does not remove it.\n",
+        "width": 620,
+        "height": 1120
+      },
+      "id": "e70473a4-141b-4994-8e21-d5afb98552ef",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -760,
+        -560
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Start and settings\n\nRuns at 9:00 on weekdays. **Settings** is the one node to change: how many people a day, how old a message may be, what you do and how you write.",
+        "width": 420,
+        "height": 360,
+        "color": 7
+      },
+      "id": "fa5e8d3d-e967-4c28-b1a8-1a378ec01a12",
+      "name": "Start and settings",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Find who is waiting\n\nRefreshes the stored inbox, waits a minute, then lists the people whose last message you have not answered. Rows with no profile link, or older than your limit, are left out. The HTTP Request nodes need your **Bearer Auth** credential.",
+        "width": 1080,
+        "height": 360,
+        "color": 7
+      },
+      "id": "2f1ee094-6a55-4d22-95d7-e11d37001cc0",
+      "name": "Find who is waiting",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Draft and ask, one person at a time\n\nReads the whole conversation, drafts a reply with the chat model, and sends you the draft in Slack with **Send it** and **Skip**. The workflow waits for your answer before it goes on.",
+        "width": 880,
+        "height": 560,
+        "color": 7
+      },
+      "id": "3b4c1870-3b85-4b86-9e26-09ba4fccf31c",
+      "name": "Draft and ask",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Send, then the next person\n\nOnly after **Send it**. The reply goes out from your own LinkedIn account, then the workflow pauses before the next person so the messages are not sent in a burst.",
+        "width": 640,
+        "height": 560,
+        "color": 7
+      },
+      "id": "5700249e-8d04-47ec-b16b-b90ef59066f9",
+      "name": "Send",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "1410a29c-1483-4454-b8b8-e3822b1311ec",
+      "name": "Every weekday at 9",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce0b10ef-75a0-4115-80ed-19947d8b2421",
+              "name": "howMany",
+              "type": "number",
+              "value": 5
+            },
+            {
+              "id": "767a0831-da8d-4b11-8cb1-24737035c427",
+              "name": "maxWaitingDays",
+              "type": "number",
+              "value": 14
+            },
+            {
+              "id": "2d586292-2107-41ec-8ab0-015bcf8e9682",
+              "name": "aboutYou",
+              "type": "string",
+              "value": "I run a small studio that builds websites for dental practices."
+            },
+            {
+              "id": "95ba7a5e-8d1e-4b80-b0be-f7c63031ee2b",
+              "name": "yourVoice",
+              "type": "string",
+              "value": "Short and friendly, plain words, no buzzwords. One question at most. I sign with my first name."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a804a082-91eb-49bd-b1cb-23a4ce949a58",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heyreagent.com/v1/actions/sync_inbox",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "id": "711ed031-a153-45e4-9049-9fce89d782c1",
+      "name": "Refresh the inbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "id": "5841281c-73e7-433b-8375-69c2bf9ee3ed",
+      "name": "Wait a minute",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        0
+      ],
+      "webhookId": "6d019e20-46be-4a88-8e08-0fa86bd7a5de"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heyreagent.com/v1/actions/who_is_waiting_on_me",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ limit: $('Settings').first().json.howMany }) }}"
+      },
+      "id": "763761b5-9560-4e9b-8bc6-6e1edfb6524e",
+      "name": "Who is waiting on me",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "result.waitingOnYou",
+        "options": {}
+      },
+      "id": "94b6a6cb-6f34-4d58-ba29-f7768d90b70e",
+      "name": "One person per item",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1c9e870f-6b1f-4b84-823a-9d58e953c769",
+              "leftValue": "={{ $json.profileUrl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "29ea39c2-de80-4224-96fa-6c8981c37df4",
+              "leftValue": "={{ $json.waitingDays }}",
+              "rightValue": "={{ $('Settings').first().json.maxWaitingDays }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "30aabd64-6882-4a01-bb58-061224c307a6",
+      "name": "Keep the ones to answer",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1340,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "bcf2bb10-ae92-4ae9-841a-4daa51eb90ba",
+      "name": "Loop over people",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1580,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heyreagent.com/v1/actions/get_conversation",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ conversationUrl: $json.profileUrl, connectionId: $json.connectionId }) }}"
+      },
+      "id": "4170b6b9-6546-4c14-bc70-d01ff5a68214",
+      "name": "Read the conversation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Person: {{ $('Loop over people').first().json.participantName }}\nTheir headline: {{ $('Loop over people').first().json.headline }}\nThey have been waiting {{ $('Loop over people').first().json.waitingDays }} days.\nTheir last message: {{ $('Loop over people').first().json.lastMessage }}\n\nThe conversation so far, as LinkedIn returned it (JSON):\n{{ JSON.stringify($json.result.messages || []).slice(0, 6000) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You draft a reply to a LinkedIn message. The owner of the account reads your draft and decides whether it is sent.\n\nAbout the owner: {{ $('Settings').first().json.aboutYou }}\nHow the owner writes: {{ $('Settings').first().json.yourVoice }}\n\nAnswer what the person actually wrote. At most 80 words. Start with their first name. No hashtags, and no emoji unless they used one. Never make up a fact, a price, a date or a link: when the answer needs one you were not given, ask one short question instead. Write in the language of their last message. Output the message text only."
+            }
+          ]
+        }
+      },
+      "id": "88504378-2ccf-4eb0-8879-e1f08e5c7eaf",
+      "name": "Draft the reply",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        2020,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "a288099c-4f74-4e46-ac0b-265dfd1f870c",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2040,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "message": "=*{{ $('Loop over people').first().json.participantName }}* has been waiting {{ $('Loop over people').first().json.waitingDays }} days for an answer on LinkedIn.\n\n*Their last message*\n{{ $('Loop over people').first().json.lastMessage }}\n\n*Draft reply*\n{{ $json.text }}\n\n{{ $('Loop over people').first().json.profileUrl }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Send it",
+            "disapproveLabel": "Skip"
+          }
+        },
+        "options": {}
+      },
+      "id": "8ce14557-73cd-4e09-8684-46ca2d760180",
+      "name": "Ask me in Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2240,
+        20
+      ],
+      "webhookId": "e5428178-b016-4cd6-851b-9197b0fb6252"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ddda0f05-bbe9-4423-84bb-b1a37d42305f",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c11e4909-c5e2-4cc9-9600-c6189f371f96",
+      "name": "Send it?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2500,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heyreagent.com/v1/actions/send_message",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ profileUrl: $('Loop over people').first().json.profileUrl, connectionId: $('Loop over people').first().json.connectionId, text: $('Draft the reply').first().json.text }) }}"
+      },
+      "id": "8fced7b3-177c-41b5-baaf-9091f8ed08e1",
+      "name": "Send the reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "id": "4de2602d-2473-4113-ba52-951590687668",
+      "name": "Pause before the next",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2940,
+        0
+      ],
+      "webhookId": "d2ac452d-3d03-4154-ad0d-008272601711"
+    }
+  ],
+  "connections": {
+    "Every weekday at 9": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Refresh the inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refresh the inbox": {
+      "main": [
+        [
+          {
+            "node": "Wait a minute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait a minute": {
+      "main": [
+        [
+          {
+            "node": "Who is waiting on me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Who is waiting on me": {
+      "main": [
+        [
+          {
+            "node": "One person per item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One person per item": {
+      "main": [
+        [
+          {
+            "node": "Keep the ones to answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep the ones to answer": {
+      "main": [
+        [
+          {
+            "node": "Loop over people",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop over people": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Read the conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the conversation": {
+      "main": [
+        [
+          {
+            "node": "Draft the reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft the reply": {
+      "main": [
+        [
+          {
+            "node": "Ask me in Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask me in Slack": {
+      "main": [
+        [
+          {
+            "node": "Send it?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send it?": {
+      "main": [
+        [
+          {
+            "node": "Send the reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop over people",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send the reply": {
+      "main": [
+        [
+          {
+            "node": "Pause before the next",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pause before the next": {
+      "main": [
+        [
+          {
+            "node": "Loop over people",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Draft the reply",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
